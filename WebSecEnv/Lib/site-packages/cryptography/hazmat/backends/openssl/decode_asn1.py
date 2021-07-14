@@ -2,9 +2,12 @@
 # 2.0, and the BSD License. See the LICENSE file in the root of this repository
 # for complete details.
 
+from __future__ import absolute_import, division, print_function
 
 import datetime
 import ipaddress
+
+import six
 
 from cryptography import x509
 from cryptography.hazmat._der import DERReader, INTEGER, NULL, SEQUENCE
@@ -129,7 +132,7 @@ def _decode_general_name(backend, gn):
             if "1" in bits[prefix:]:
                 raise ValueError("Invalid netmask")
 
-            ip = ipaddress.ip_network(base.exploded + "/{}".format(prefix))
+            ip = ipaddress.ip_network(base.exploded + u"/{}".format(prefix))
         else:
             ip = ipaddress.ip_address(data)
 
@@ -592,7 +595,7 @@ _REASON_BIT_MAPPING = {
 def _decode_reasons(backend, reasons):
     # We will check each bit from RFC 5280
     enum_reasons = []
-    for bit_position, reason in _REASON_BIT_MAPPING.items():
+    for bit_position, reason in six.iteritems(_REASON_BIT_MAPPING):
         if backend._lib.ASN1_BIT_STRING_get_bit(reasons, bit_position):
             enum_reasons.append(reason)
 
@@ -768,7 +771,7 @@ def _asn1_string_to_ascii(backend, asn1_string):
     return _asn1_string_to_bytes(backend, asn1_string).decode("ascii")
 
 
-def _asn1_string_to_utf8(backend, asn1_string) -> str:
+def _asn1_string_to_utf8(backend, asn1_string):
     buf = backend._ffi.new("unsigned char **")
     res = backend._lib.ASN1_STRING_to_UTF8(buf, asn1_string)
     if res == -1:
